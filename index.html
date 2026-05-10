@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Immobilien-Rechner · Specht & Waschkowski</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Immo-Rechner"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#0f0f0f;font-family:'DM Sans','Segoe UI',sans-serif;color:#f0ece4;min-height:100vh}
+#app{max-width:480px;margin:0 auto;min-height:100vh}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#c9a96e;cursor:pointer;box-shadow:0 0 0 3px rgba(201,169,110,0.2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#c9a96e;cursor:pointer;border:none}
+.txt-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#c9a96e;font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;padding:4px 8px;text-align:right;outline:none;width:88px;transition:background .15s,border .15s}
+.txt-input:focus{background:rgba(201,169,110,0.12);border-color:#c9a96e}
+button{cursor:pointer;font-family:'DM Sans',sans-serif}
+.header{background:linear-gradient(135deg,#1a1510,#0f0f0f);border-bottom:1px solid rgba(201,169,110,0.2);padding:18px 20px 14px;display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.header-sub{font-size:10px;letter-spacing:.15em;color:#c9a96e;text-transform:uppercase;margin-bottom:4px}
+.header-title{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.header-desc{font-size:11px;color:rgba(240,236,228,0.4);margin-top:2px}
+.exp-btn{background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.35);border-radius:8px;color:#c9a96e;padding:8px 14px;font-size:12px;font-weight:600}
+.exp-menu{display:none;position:absolute;right:20px;top:72px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:10px;overflow:hidden;z-index:100;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+.exp-menu.open{display:block}
+.exp-item{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;color:#f0ece4;font-size:13px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07)}
+.exp-item:last-child{border-bottom:none}
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.08)}
+.tab{flex:1;padding:12px 0;background:none;border:none;border-bottom:2px solid transparent;color:rgba(240,236,228,0.4);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.tab.active{border-bottom-color:#c9a96e;color:#c9a96e}
+.pane{display:none;padding:20px}
+.pane.active{display:block}
+.sl-row{margin-bottom:20px}
+.sl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sl-label{color:rgba(240,236,228,0.6);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.sl-wrap{display:flex;align-items:center;gap:4px}
+.sl-unit{color:rgba(201,169,110,0.6);font-size:12px;font-family:'IBM Plex Mono',monospace}
+.sl-mm{display:flex;justify-content:space-between;margin-top:4px}
+.sl-mm span{color:rgba(240,236,228,0.25);font-size:10px}
+.ek-box{background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.15);border-radius:8px;padding:12px 14px;margin-bottom:20px;margin-top:-12px}
+.ek-r{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px;color:rgba(240,236,228,0.5)}
+.ek-r span:last-child{font-family:'IBM Plex Mono',monospace}
+.ek-tot{display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:5px}
+.ek-tot-l{font-size:12px;font-weight:600}
+.ek-tot-v{font-size:13px;font-family:'IBM Plex Mono',monospace;color:#c9a96e;font-weight:700}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(201,169,110,0.07);border-radius:8px;border:1px solid rgba(201,169,110,0.15);margin-bottom:20px}
+.tog-label{font-size:12px;color:rgba(240,236,228,0.7)}
+.tog{width:40px;height:22px;border-radius:11px;background:rgba(255,255,255,0.1);position:relative;transition:background .2s;border:none;flex-shrink:0}
+.tog.on{background:#c9a96e}
+.tog-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;pointer-events:none}
+.tog.on .tog-thumb{left:21px}
+.card{background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.08);padding:16px;margin-bottom:12px}
+.card-ttl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,236,228,0.4);margin-bottom:12px}
+.card-ttl.gold{color:#c9a96e;margin-bottom:10px}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.dr.sep{border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:4px}
+.dr.ind{padding-left:16px}
+.dl{color:rgba(240,236,228,0.7);font-size:12.5px}
+.dl.b{color:#f0ece4;font-size:13px;font-weight:600}
+.dl.sub{color:rgba(240,236,228,0.45);font-size:11px}
+.dl.gold{color:#c9a96e;font-weight:700;font-size:13px}
+.dv{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#f0ece4}
+.dv.b{font-size:14px;font-weight:700}
+.dv.pos{color:#6fcf97}.dv.neg{color:#eb5757}.dv.gold{color:#c9a96e;font-weight:800;font-size:14px}
+.cf-box{margin-top:10px;padding:12px;border-radius:8px}
+.cf-lbl{font-size:10px;color:rgba(240,236,228,0.5);margin-bottom:4px}
+.cf-val{font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.cf-sub{font-size:11px;color:rgba(240,236,228,0.4);margin-top:2px}
+.amp-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.amp-dot{font-size:14px;margin-top:1px;flex-shrink:0}
+.amp-lbl{color:#f0ece4;font-size:12px;font-weight:600}
+.amp-cmt{color:rgba(240,236,228,0.5);font-size:11px;margin-top:2px}
+.verd-box{padding:16px;border-radius:10px;margin-bottom:16px}
+.verd-tag{font-size:10px;letter-spacing:.1em;color:rgba(240,236,228,0.5);text-transform:uppercase}
+.verd-txt{font-size:28px;font-weight:800;margin-top:4px}
+.disc{margin-top:12px;font-size:10px;color:rgba(240,236,228,0.25);text-align:center;line-height:1.7}
+@media print{
+  #app{display:none}
+  #pr{display:block!important}
+  body{background:#fff!important;color:#000!important}
+}
+#pr{display:none;padding:28px 32px;font-family:Arial,sans-serif;color:#111}
+#pr h1{font-size:20px;margin-bottom:2px}
+#pr .ps{font-size:12px;color:#888;margin-bottom:6px}
+#pr .pm{font-size:11px;color:#aaa;margin-bottom:20px}
+#pr .pv{display:inline-block;padding:6px 18px;border-radius:4px;font-weight:800;font-size:17px;margin-bottom:20px}
+#pr table{width:100%;border-collapse:collapse;margin-bottom:20px}
+#pr th{background:#1a1510;color:#c9a96e;padding:8px 12px;text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+#pr td{padding:5px 12px;border-bottom:1px solid #eee;font-size:12px}
+#pr td.v{text-align:right;font-family:monospace}
+#pr tr.b td{font-weight:700}
+#pr tr.s td{color:#888;font-size:11px}
+#pr tr.h td{background:#fffbe6;font-weight:700}
+#pr .pd{font-size:10px;color:#bbb;margin-top:16px;text-align:center}
+</style>
+</head>
+<body>
+<div id="pr"></div>
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="header-sub">Specht &amp; Waschkowski</div>
+      <div class="header-title">Immobilien-Rechner</div>
+      <div class="header-desc">Cashflow · Rendite · Steuer</div>
+    </div>
+    <div>
+      <button class="exp-btn" id="shareBtn" style="margin-right:8px">🔗 Teilen</button><button class="exp-btn" id="expBtn">⬇ Export</button>
+      <div class="exp-menu" id="expMenu">
+        <button class="exp-item" id="csvBtn"><span style="font-size:18px">📊</span><div><div style="font-weight:600">CSV / Excel</div><div style="font-size:10px;color:rgba(240,236,228,0.4)">.csv · in Excel öffnen</div></div></button>
+        <button class="exp-item" id="pdfBtn"><span style="font-size:18px">📄</span><div><div style="font-weight:600">PDF</div><div style="font-size:10px;color:rgba(240,236,228,0.4)">Browser-Druck → Speichern</div></div></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-e">Eingaben</button>
+    <button class="tab" id="tab-r">Rechnung</button>
+    <button class="tab" id="tab-b">Bewertung</button>
+  </div>
+
+  <div class="pane active" id="pe">
+    <div id="sliders"></div>
+    <div class="ek-box">
+      <div class="ek-r"><span>davon Kaufnebenkosten</span><span id="d-nk">–</span></div>
+      <div class="ek-r"><span>davon für Kaufpreis</span><span id="d-ekp">–</span></div>
+      <div class="ek-tot"><span class="ek-tot-l">Darlehen</span><span class="ek-tot-v" id="d-darl">–</span></div>
+      <div class="ek-r" style="margin-top:4px"><span>EK-Quote</span><span id="d-ekq">–</span></div>
+    </div>
+    <div class="tog-row">
+      <span class="tog-label">Mit Makler (3,57 %)</span>
+      <button class="tog" id="makTog"><div class="tog-thumb"></div></button>
+    </div>
+    <div class="card"><div class="card-ttl">Schnell-Übersicht</div><div id="d-ov"></div></div>
+  </div>
+
+  <div class="pane" id="pr2">
+    <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,236,228,0.4);margin-bottom:4px">Strukturierte Berechnung</div>
+    <div style="font-size:11px;color:rgba(240,236,228,0.3);margin-bottom:16px">Steuerliche Rechnung ≠ Cashflow. Tilgung ist NICHT steuerlich absetzbar.</div>
+    <div id="d-rech"></div>
+  </div>
+
+  <div class="pane" id="pb"><div id="d-bew"></div></div>
+</div>
+
+<script>
+window.onerror = function(msg, src, line, col, err){
+  var d = document.getElementById('errdiv');
+  if(!d){ d=document.createElement('div'); d.id='errdiv';
+    d.style.cssText='position:fixed;top:0;left:0;right:0;background:red;color:white;padding:10px;font-size:12px;z-index:9999;word-break:break-all;';
+    document.body.appendChild(d); }
+  d.textContent = 'Fehler Zeile '+line+': '+msg;
+  return false;
+};
+var S = {
+  kaufpreis: 167500, eigenkapital: 30000, mieteQm: 9.0,
+  wohnflaeche: 54, zins: 4.0, tilgung: 2.0,
+  steuersatz: 47.475, mitMakler: false,
+  afaSatz: 2.0, instandQm: 15
+};
+
+var SLIDERS = [
+  {k:'kaufpreis',   lbl:'Kaufpreis',              min:50000,  max:10000000, step:2500, unit:'€',    fmt:function(v){return fmtDE(v)}},
+  {k:'eigenkapital',lbl:'Eigenkapital (inkl. NK)', min:0,      max:5000000, step:5000, unit:'€',    fmt:function(v){return fmtDE(v)}},
+  {k:'wohnflaeche', lbl:'Wohnfläche',              min:20,     max:2000,   step:5,    unit:'m²',   fmt:function(v){return v}},
+  {k:'mieteQm',     lbl:'Kaltmiete pro m²',        min:1,      max:100,    step:0.5,  unit:'€/m²', fmt:function(v){return v.toFixed(1)}},
+  {k:'zins',        lbl:'Zinssatz',                min:0.5,    max:15,     step:0.1,  unit:'%',    fmt:function(v){return v.toFixed(1)}},
+  {k:'tilgung',     lbl:'Tilgung',                 min:0.5,    max:10,     step:0.1,  unit:'%',    fmt:function(v){return v.toFixed(1)}},
+  {k:'steuersatz',  lbl:'Steuersatz',              min:25,     max:47.475, step:0.5,  unit:'%',    fmt:function(v){return v.toFixed(1)}},
+  {k:'afaSatz',     lbl:'AfA-Satz',                min:1,      max:5,      step:0.5,  unit:'%',    fmt:function(v){return v.toFixed(1)}},
+  {k:'instandQm',   lbl:'Instandhaltung pro m²',   min:1,      max:30,     step:1,    unit:'€/m²', fmt:function(v){return v}}
+];
+
+function fmtDE(n){ return new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n)); }
+function fmtE(n){ return (n<0?'−':'+')+fmtDE(Math.abs(n))+' €'; }
+function fmtR(n){ return (n<0?'−':'')+fmtDE(Math.abs(n))+' EUR'; }
+function vcls(v){ return v>0?'pos':v<0?'neg':''; }
+
+function parseNum(raw){
+  var s = String(raw).trim();
+  if(s.indexOf('.')>-1 && s.indexOf(',')>-1){
+    s = s.replace(/\./g,'').replace(',','.');
+  } else if(s.indexOf('.')>-1 && s.indexOf(',')===-1){
+    var parts = s.split('.');
+    if(parts[parts.length-1].length > 2) s = s.replace(/\./g,'');
+  } else if(s.indexOf(',')>-1){
+    s = s.replace(',','.');
+  }
+  s = s.replace(/[^0-9.\-]/g,'');
+  return parseFloat(s);
+}
+
+function calc(){
+  var kp=S.kaufpreis, ek=S.eigenkapital, mq=S.mieteQm, wf=S.wohnflaeche,
+      zi=S.zins, ti=S.tilgung, st=S.steuersatz, mk=S.mitMakler;
+  var nkSatz = 0.05+0.015+0.005+(mk?0.0357:0);
+  var nk = kp*nkSatz;
+  var ekKP = Math.max(0, ek-nk);
+  var darl = Math.max(0, kp-ekKP);
+  var ekQ = ek>0?(ek/(kp+nk))*100:0;
+  var annPA = darl*(zi/100+ti/100);
+  var annPM = annPA/12;
+  var zinsPA = darl*(zi/100);
+  var tilgPA = darl*(ti/100);
+  var mietM = mq*wf;
+  var jnkm = mietM*12;
+  var instand = wf*S.instandQm;
+  var vVorAfA = jnkm-zinsPA-instand;
+  var afaG = kp*0.8;
+  var afaPA = afaG*(S.afaSatz/100);
+  var vNachAfA = vVorAfA-afaPA;
+  var stEff = Math.abs(vNachAfA)*(st/100);
+  var stErs = vNachAfA<0?stEff:0;
+  var stLast = vNachAfA>0?-stEff:0;
+  var cfVorStPA = jnkm-annPA-instand;
+  var cfPA = jnkm-annPA-instand+stErs+stLast;
+  var cfPM = cfPA/12;
+  var ekRend = ek>0?((cfPA+tilgPA)/ek)*100:0;
+  var brutto = (jnkm/kp)*100;
+  var faktor = kp/jnkm;
+  var qmP = kp/wf;
+  return {kp:kp,ek:ek,mq:mq,wf:wf,zi:zi,ti:ti,st:st,mk:mk,
+    nk:nk,ekKP:ekKP,darl:darl,ekQ:ekQ,annPA:annPA,annPM:annPM,
+    cfVorStPA:cfVorStPA,zinsPA:zinsPA,tilgPA:tilgPA,mietM:mietM,jnkm:jnkm,instand:instand,
+    vVorAfA:vVorAfA,afaG:afaG,afaPA:afaPA,vNachAfA:vNachAfA,
+    stErs:stErs,stLast:stLast,cfPA:cfPA,cfPM:cfPM,ekRend:ekRend,
+    brutto:brutto,faktor:faktor,qmP:qmP};
+}
+
+function dr(lbl,val,cls,bold,ind,sep,sub,gold){
+  cls=cls||''; bold=bold||false; ind=ind||false; sep=sep||false; sub=sub||false; gold=gold||false;
+  return '<div class="dr'+(sep?' sep':'')+(ind?' ind':'')+'">'+
+    '<span class="dl'+(bold?' b':'')+(sub?' sub':'')+(gold?' gold':'')+'">' +lbl+'</span>'+
+    '<span class="dv'+(bold?' b':'')+(gold?' gold':' '+cls)+'">'+val+'</span></div>';
+}
+
+function amp(dot,lbl,cmt){
+  return '<div class="amp-row"><span class="amp-dot">'+dot+'</span><div><div class="amp-lbl">'+lbl+'</div><div class="amp-cmt">'+cmt+'</div></div></div>';
+}
+
+function adot(c){ return c==='green'?'🟢':c==='yellow'?'🟡':'🔴'; }
+function acls(v,t1,t2){ return v>=t1?'green':v>=t2?'yellow':'red'; }
+
+function update(){
+  var C = calc();
+  var stLbl = C.vNachAfA<0?('Steuerersparnis ('+C.st+' %)'):'Steuerlast ('+C.st+' %)';
+  var stVal = C.vNachAfA<0?C.stErs:C.stLast;
+
+  // EK box
+  document.getElementById('d-nk').textContent = fmtDE(C.nk)+' €';
+  document.getElementById('d-ekp').textContent = fmtDE(C.ekKP)+' €';
+  document.getElementById('d-darl').textContent = fmtDE(C.darl)+' €';
+  document.getElementById('d-ekq').textContent = C.ekQ.toFixed(1)+' %';
+
+  // CF colors
+  var cfC = C.cfPM>=0?'#6fcf97':C.cfPM>=-200?'#f2994a':'#eb5757';
+  var cfBg = C.cfPM>=0?'rgba(111,207,151,0.1)':C.cfPM>=-200?'rgba(242,153,74,0.1)':'rgba(235,87,87,0.1)';
+  var cfBd = C.cfPM>=0?'rgba(111,207,151,0.3)':C.cfPM>=-200?'rgba(242,153,74,0.3)':'rgba(235,87,87,0.3)';
+  var ekC = C.ekRend>=5?'#6fcf97':C.ekRend>=2?'#f2994a':'#eb5757';
+
+  // Overview
+  document.getElementById('d-ov').innerHTML =
+    dr('Kaufpreis', fmtDE(C.kp)+' €') +
+    dr('€/m²', fmtDE(C.qmP)+' €') +
+    dr('Eigenkapital (inkl. NK)', fmtDE(C.ek)+' €') +
+    dr('Darlehen', fmtDE(C.darl)+' €', '', true) +
+    dr('EK-Quote', C.ekQ.toFixed(1)+' %') +
+    dr('Bruttomietrendite', C.brutto.toFixed(2)+' %', '', true) +
+    dr('Kaufpreis-Faktor', C.faktor.toFixed(1)+'x', '', true) +
+    dr('Monatliche Rate', '−'+fmtDE(C.annPM)+' €', 'neg', true) +
+    '<div class="cf-box" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);margin-bottom:0;border-radius:8px 8px 0 0">'+
+      '<div class="cf-lbl">CASHFLOW VOR STEUERN</div>'+
+      '<div class="cf-val" style="color:'+(C.cfVorStPA/12>=0?'#6fcf97':C.cfVorStPA/12>=-200?'#f2994a':'#eb5757')+'">'+(C.cfVorStPA/12>=0?'+':'−')+fmtDE(Math.abs(C.cfVorStPA/12))+' €<span style="font-size:13px;font-weight:400">/Mon.</span></div>'+
+      '<div class="cf-sub">'+fmtDE(Math.abs(C.cfVorStPA))+' € p.a.</div>'+
+    '</div>'+
+    '<div class="cf-box" style="background:'+cfBg+';border:1px solid '+cfBd+';border-top:none;border-radius:0 0 8px 8px;margin-top:0">'+
+      '<div class="cf-lbl">CASHFLOW NACH STEUERN</div>'+
+      '<div class="cf-val" style="color:'+cfC+'">'+(C.cfPM>=0?'+':'−')+fmtDE(Math.abs(C.cfPM))+' €<span style="font-size:13px;font-weight:400">/Mon.</span></div>'+
+      '<div class="cf-sub">'+fmtDE(Math.abs(C.cfPA))+' € p.a. · Tilgung '+fmtDE(C.tilgPA)+' €/Jahr</div>'+
+    '</div>'+
+    '<div class="cf-box" style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.2);margin-top:10px">'+
+      '<div class="cf-lbl">EK-RENDITE P.A. (Cashflow + Tilgung)</div>'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div class="cf-val" style="color:'+ekC+'">'+(C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' %</div>'+
+        '<span style="font-size:18px">'+(C.ekRend>=5?'🟢':C.ekRend>=2?'🟡':'🔴')+'</span>'+
+        '<span style="font-size:11px;color:rgba(240,236,228,0.5)">'+(C.ekRend>=5?'Gut':C.ekRend>=2?'Ok':'Schwach')+'</span>'+
+      '</div>'+
+      '<div class="cf-sub">'+fmtDE(C.cfPA+C.tilgPA)+' € Gesamtnutzen · '+fmtDE(C.ek)+' € EK</div>'+
+    '</div>';
+
+  // Rechnung
+  document.getElementById('d-rech').innerHTML =
+    '<div class="card"><div class="card-ttl gold">① Finanzierung</div>'+
+      dr('Kaufpreis', fmtDE(C.kp)+' €')+
+      dr('Eigenkapital gesamt (inkl. NK)', fmtDE(C.ek)+' €')+
+      dr('davon Kaufnebenkosten', fmtDE(C.nk)+' €','',false,true,false,true)+
+      dr('davon für Kaufpreis', fmtDE(C.ekKP)+' €','',false,true,false,true)+
+      dr('Darlehen', fmtDE(C.darl)+' €','',true)+
+      dr('EK-Quote', C.ekQ.toFixed(1)+' %')+
+      dr('Zinsanteil p.a. ('+C.zi.toFixed(1)+' %)', fmtDE(C.zinsPA)+' €')+
+      dr('Tilgungsanteil p.a. ('+C.ti.toFixed(1)+' %)', fmtDE(C.tilgPA)+' €','',false,false,false,true)+
+      dr('Annuität gesamt p.a.', fmtDE(C.annPA)+' €','',true)+
+      dr('Monatliche Rate', fmtDE(C.annPM)+' €','',true)+
+    '</div>'+
+    '<div class="card"><div class="card-ttl gold">② Steuerliche Rechnung (nur Zins!)</div>'+
+      dr('Mieteinnahmen p.a.', fmtE(C.jnkm),'pos')+
+      dr('Zinsanteil (absetzbar)', fmtE(-C.zinsPA),'neg',false,true)+
+      dr('Instandhaltung ('+C.wf+' m² × 15 €)', fmtE(-C.instand),'neg',false,true)+
+      dr('Überschuss vor AfA', fmtE(C.vVorAfA),vcls(C.vVorAfA),true,false,true)+
+      dr('AfA ('+fmtDE(C.afaG)+' € × 2,0 %)', fmtE(-C.afaPA),'neg',false,true)+
+      dr('Steuerl. Ergebnis nach AfA', fmtE(C.vNachAfA),vcls(C.vNachAfA),true,false,true)+
+      dr(stLbl, fmtE(stVal),vcls(stVal),true)+
+    '</div>'+
+    '<div class="card"><div class="card-ttl gold">③ Cashflow (mit Annuität komplett)</div>'+
+      dr('Mieteinnahmen', fmtE(C.jnkm),'pos')+
+      dr('Annuität (Zins + Tilgung)', fmtE(-C.annPA),'neg',false,true)+
+      dr('Instandhaltung', fmtE(-C.instand),'neg',false,true)+
+      dr((C.vNachAfA<0?'Steuerersparnis':'Steuerlast'), fmtE(stVal),vcls(stVal),false,true)+
+      dr('Cashflow nach Steuern p.a.', fmtE(C.cfPA),vcls(C.cfPA),true,false,true)+
+      dr('Cashflow pro Monat', fmtE(C.cfPM),vcls(C.cfPM),true)+
+      dr('Tilgung p.a. (Vermögensaufbau)', fmtE(C.tilgPA),'pos',true)+
+    '</div>'+
+    '<div class="card"><div class="card-ttl gold">④ EK-Rendite</div>'+
+      dr('Cashflow nach Steuern p.a.', fmtE(C.cfPA),vcls(C.cfPA))+
+      dr('+ Tilgung p.a.', fmtE(C.tilgPA),'pos',false,true)+
+      dr('= Gesamtnutzen p.a.', fmtE(C.cfPA+C.tilgPA),vcls(C.cfPA+C.tilgPA),true,false,true)+
+      dr('÷ Eigenkapital', fmtDE(C.ek)+' €','',false,true)+
+      '<div class="dr sep"><span class="dl gold">EK-Rendite p.a.</span><span class="dv gold">'+(C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' %</span></div>'+
+    '</div>';
+
+  // Bewertung
+  var qmA = C.qmP<=2200?'green':C.qmP<=2800?'yellow':'red';
+  var rA  = C.brutto>=5?'green':C.brutto>=4?'yellow':'red';
+  var fA  = C.faktor<=20?'green':C.faktor<=25?'yellow':'red';
+  var cA  = C.cfPM>=0?'green':C.cfPM>=-200?'yellow':'red';
+  var eA  = C.ekRend>=5?'green':C.ekRend>=2?'yellow':'red';
+  var reds= [qmA,rA,fA,cA].filter(function(a){return a==='red';}).length;
+  var emp = reds>=3?{t:'NO-GO',c:'#eb5757',bg:'rgba(235,87,87,0.1)'}
+          : reds>=1?{t:'GO MIT VORBEHALT',c:'#f2994a',bg:'rgba(242,153,74,0.1)'}
+          :         {t:'GO',c:'#6fcf97',bg:'rgba(111,207,151,0.1)'};
+
+  document.getElementById('d-bew').innerHTML =
+    '<div class="verd-box" style="background:'+emp.bg+';border:1px solid '+emp.c+'40">'+
+      '<div class="verd-tag">Gesamtbewertung</div>'+
+      '<div class="verd-txt" style="color:'+emp.c+'">'+emp.t+'</div>'+
+    '</div>'+
+    amp(adot(qmA),'Kaufpreis-Plausibilität', fmtDE(C.qmP)+' €/m² · Rinteln Ø ~1.967 €/m²')+
+    amp(adot(rA), 'Bruttomietrendite', C.brutto.toFixed(2)+' % · Gut: >5 %, Ok: 4–5 %, Schwach: <4 %')+
+    amp(adot(fA), 'Kaufpreis-Faktor', C.faktor.toFixed(1)+'x · Gut: <20, Ok: 20–25, Schwach: >25')+
+    amp(adot(cA), 'Cashflow nach Steuern', (C.cfPM>=0?'+':'')+fmtDE(C.cfPM)+' €/Mon. · Ziel: ≥ 0')+
+    amp(adot(eA), 'EK-Rendite p.a.', (C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' % · Gut: >5 %, Ok: 2–5 %, Schwach: <2 %')+
+    '<div class="card" style="margin-top:16px"><div class="card-ttl">Kennzahlen</div>'+
+      dr('Kaufpreis', fmtDE(C.kp)+' €')+
+      dr('JNKM', fmtDE(C.jnkm)+' €')+
+      dr('Bruttomietrendite', C.brutto.toFixed(2)+' %')+
+      dr('Faktor', C.faktor.toFixed(1)+'x')+
+      dr('€/m²', fmtDE(C.qmP)+' €')+
+      dr('EK-Einsatz', fmtDE(C.ek)+' €')+
+      dr('Darlehen', fmtDE(C.darl)+' €')+
+      dr('EK-Quote', C.ekQ.toFixed(1)+' %')+
+      dr('Tilgung p.a.', fmtDE(C.tilgPA)+' €')+
+      '<div class="dr sep"><span class="dl gold">EK-Rendite p.a.</span><span class="dv gold">'+(C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' %</span></div>'+
+    '</div>'+
+    '<div class="disc">Plausibilitätsprüfung, keine Anlageempfehlung.<br>Vor Kauf: Kricheldorf + ggf. Anwalt einbeziehen.</div>';
+}
+
+function commitVal(cfg, el, rng, rawVal){
+  var p = parseNum(rawVal !== undefined ? rawVal : el.value);
+  if(!isNaN(p)){
+    var cl = Math.min(cfg.max, Math.max(cfg.min, p));
+    var dec = cfg.step<1?(String(cfg.step).split('.')[1]||'').length:0;
+    S[cfg.k] = parseFloat(cl.toFixed(dec));
+  }
+  el.value = cfg.fmt(S[cfg.k]);
+  rng.value = S[cfg.k];
+  update();
+}
+
+function buildSliders(){
+  var wrap = document.getElementById('sliders');
+  for(var i=0;i<SLIDERS.length;i++){
+    (function(cfg){
+      var div = document.createElement('div');
+      div.className = 'sl-row';
+      var top=document.createElement('div'); top.className='sl-top';
+      var lbl=document.createElement('span'); lbl.className='sl-label'; lbl.textContent=cfg.lbl; top.appendChild(lbl);
+      var wrap=document.createElement('div'); wrap.className='sl-wrap';
+      var ti=document.createElement('input'); ti.type='text'; ti.className='txt-input'; ti.id='t-'+cfg.k; ti.value=cfg.fmt(S[cfg.k]); wrap.appendChild(ti);
+      var un=document.createElement('span'); un.className='sl-unit'; un.textContent=cfg.unit; wrap.appendChild(un);
+      top.appendChild(wrap); div.appendChild(top);
+      var ri=document.createElement('input'); ri.type='range'; ri.id='n-'+cfg.k; ri.min=cfg.min; ri.max=cfg.max; ri.step=cfg.step; ri.value=S[cfg.k]; div.appendChild(ri);
+      var mm=document.createElement('div'); mm.className='sl-mm';
+      var s1=document.createElement('span'); s1.textContent=cfg.fmt(cfg.min)+' '+cfg.unit; mm.appendChild(s1);
+      var s2=document.createElement('span'); s2.textContent=cfg.fmt(cfg.max)+' '+cfg.unit; mm.appendChild(s2);
+      div.appendChild(mm);
+      document.getElementById('sliders').appendChild(div);
+
+      var txt = ti;
+      var rng = ri;
+
+
+
+      var currentVal = String(S[cfg.k]);
+      var committed = false;
+      txt.addEventListener('focus', function(){ this.value = String(S[cfg.k]); currentVal = this.value; committed = false; this.select(); });
+      txt.addEventListener('input', function(){ currentVal = this.value; committed = false; });
+      txt.addEventListener('paste', function(){ var self=this; setTimeout(function(){ currentVal = self.value; committed = false; }, 0); });
+      txt.addEventListener('blur', function(){ if(!committed){ commitVal(cfg, ti, ri, currentVal); } committed = false; });
+      txt.addEventListener('keydown', function(e){
+        if(e.key==='Enter'){
+          e.preventDefault();
+          committed = true;
+          commitVal(cfg, ti, ri, currentVal);
+          this.blur();
+        }
+        if(e.key==='Escape'){ committed = true; currentVal=cfg.fmt(S[cfg.k]); this.value=currentVal; this.blur(); }
+      });
+
+      ri.addEventListener('input', function(){
+        S[cfg.k] = Number(this.value);
+        ti.value = cfg.fmt(S[cfg.k]);
+        update();
+      });
+    })(SLIDERS[i]);
+  }
+}
+
+function togMakler(){
+  S.mitMakler = !S.mitMakler;
+  var t=document.getElementById('makTog'); if(S.mitMakler){t.classList.add('on');}else{t.classList.remove('on');}
+  update();
+}
+
+function goTab(id, btn){
+  var tabs=document.querySelectorAll('.tab'); for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}
+  var panes=document.querySelectorAll('.pane'); for(var i=0;i<panes.length;i++){panes[i].classList.remove('active');}
+  btn.classList.add('active');
+  document.getElementById('p'+id).classList.add('active');
+  document.getElementById('expMenu').classList.remove('open');
+}
+
+function toggleExp(){
+  document.getElementById('expMenu').classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  try{ if(!e.target.closest('.header > div:last-child')) document.getElementById('expMenu').classList.remove('open'); }catch(ex){ document.getElementById('expMenu').classList.remove('open'); }
+});
+
+function doCSV(){
+  var C = calc();
+  var stLbl = C.vNachAfA<0?'Steuerersparnis':'Steuerlast';
+  var stVal = C.vNachAfA<0?C.stErs:C.stLast;
+  var qmA=C.qmP<=2200?'green':C.qmP<=2800?'yellow':'red';
+  var rA=C.brutto>=5?'green':C.brutto>=4?'yellow':'red';
+  var fA=C.faktor<=20?'green':C.faktor<=25?'yellow':'red';
+  var cA=C.cfPM>=0?'green':C.cfPM>=-200?'yellow':'red';
+  var eA=C.ekRend>=5?'green':C.ekRend>=2?'yellow':'red';
+  var reds=[qmA,rA,fA,cA].filter(function(a){return a==='red';}).length;
+  var emp=reds>=3?'NO-GO':reds>=1?'GO MIT VORBEHALT':'GO';
+  function dot(a){return a==='green'?'GUT':a==='yellow'?'OK':'SCHWACH';}
+  var rows=[
+    ['EINGABEN',''],
+    ['Kaufpreis',C.kp],['Eigenkapital (inkl. NK)',C.ek],
+    ['Kaufnebenkosten',Math.round(C.nk)],['EK fuer Kaufpreis',Math.round(C.ekKP)],
+    ['Darlehen',Math.round(C.darl)],['EK-Quote',C.ekQ.toFixed(1)+' %'],
+    ['Wohnflaeche (m2)',C.wf],['Kaltmiete (EUR/m2)',C.mq],
+    ['Zinssatz (%)',C.zi],['Tilgung (%)',C.ti],
+    ['Steuersatz (%)',C.st],['Mit Makler',C.mk?'Ja':'Nein'],
+    ['',''],
+    ['FINANZIERUNG','EUR'],
+    ['Zinsanteil p.a.',Math.round(C.zinsPA)],['Tilgungsanteil p.a.',Math.round(C.tilgPA)],
+    ['Annuitaet p.a.',Math.round(C.annPA)],['Monatliche Rate',Math.round(C.annPM)],
+    ['',''],
+    ['STEUERLICHE RECHNUNG (nur Zins!)','EUR p.a.'],
+    ['Mieteinnahmen p.a.',Math.round(C.jnkm)],['Zinsanteil (absetzbar)',-Math.round(C.zinsPA)],
+    ['Instandhaltung',-Math.round(C.instand)],['Ueberschuss vor AfA',Math.round(C.vVorAfA)],
+    ['AfA p.a.',-Math.round(C.afaPA)],['Steuerl. Ergebnis nach AfA',Math.round(C.vNachAfA)],
+    [stLbl,Math.round(stVal)],
+    ['',''],
+    ['CASHFLOW','EUR'],
+    ['Mieteinnahmen',Math.round(C.jnkm)],['Annuitaet',-Math.round(C.annPA)],
+    ['Instandhaltung',-Math.round(C.instand)],[stLbl,Math.round(stVal)],
+    ['Cashflow nach Steuern p.a.',Math.round(C.cfPA)],['Cashflow pro Monat',Math.round(C.cfPM)],
+    ['Tilgung p.a.',Math.round(C.tilgPA)],
+    ['',''],
+    ['EK-RENDITE',''],
+    ['Cashflow nach Steuern p.a.',Math.round(C.cfPA)],['Tilgung p.a.',Math.round(C.tilgPA)],
+    ['Gesamtnutzen p.a.',Math.round(C.cfPA+C.tilgPA)],['Eigenkapital',Math.round(C.ek)],
+    ['EK-Rendite p.a.',C.ekRend.toFixed(2)+' %'],
+    ['',''],
+    ['BEWERTUNG','Wert','Ampel'],['Gesamturteil',emp,''],
+    ['Kaufpreis EUR/m2',Math.round(C.qmP)+' EUR',dot(qmA)],
+    ['Bruttomietrendite',C.brutto.toFixed(2)+' %',dot(rA)],
+    ['Kaufpreis-Faktor',C.faktor.toFixed(1)+'x',dot(fA)],
+    ['Cashflow pro Monat',Math.round(C.cfPM)+' EUR',dot(cA)],
+    ['EK-Rendite p.a.',C.ekRend.toFixed(2)+' %',dot(eA)]
+  ];
+  var csv = rows.map(function(r){
+    return r.map(function(c){
+      var s=String(c);
+      return (s.indexOf(';')>-1||s.indexOf('"')>-1)?'"'+s.replace(/"/g,'""')+'"':s;
+    }).join(';');
+  }).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='Immobilien-Rechner.csv'; a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('expMenu').classList.remove('open');
+}
+
+function doPDF(){
+  var C=calc();
+  var stLbl=C.vNachAfA<0?'Steuerersparnis':'Steuerlast';
+  var stVal=C.vNachAfA<0?C.stErs:C.stLast;
+  var qmA=C.qmP<=2200?'green':C.qmP<=2800?'yellow':'red';
+  var rA=C.brutto>=5?'green':C.brutto>=4?'yellow':'red';
+  var fA=C.faktor<=20?'green':C.faktor<=25?'yellow':'red';
+  var cA=C.cfPM>=0?'green':C.cfPM>=-200?'yellow':'red';
+  var eA=C.ekRend>=5?'green':C.ekRend>=2?'yellow':'red';
+  var reds=[qmA,rA,fA,cA].filter(function(a){return a==='red';}).length;
+  var emp=reds>=3?{t:'NO-GO',bg:'#ffeaea',c:'#c0392b'}
+        :reds>=1?{t:'GO MIT VORBEHALT',bg:'#fff4e0',c:'#d4790a'}
+        :        {t:'GO',bg:'#e8f7ee',c:'#1a7a3a'};
+  function dot(a){return a==='green'?'🟢':a==='yellow'?'🟡':'🔴';}
+  document.getElementById('pr').innerHTML=
+    '<h1>Immobilien-Rechner</h1>'+
+    '<div class="ps">Specht &amp; Waschkowski · Cashflow · Rendite · Steuer</div>'+
+    '<div class="pm">Erstellt: '+new Date().toLocaleDateString('de-DE')+' · KP: '+fmtDE(C.kp)+' EUR · EK: '+fmtDE(C.ek)+' EUR · Darlehen: '+fmtDE(C.darl)+' EUR</div>'+
+    '<div class="pv" style="background:'+emp.bg+';color:'+emp.c+'">'+emp.t+'</div>'+
+    '<table><tr><th>① Finanzierung</th><th style="text-align:right">EUR</th></tr>'+
+    '<tr><td>Kaufpreis</td><td class="v">'+fmtDE(C.kp)+' EUR</td></tr>'+
+    '<tr><td>Eigenkapital (inkl. NK)</td><td class="v">'+fmtDE(C.ek)+' EUR</td></tr>'+
+    '<tr class="s"><td>&nbsp;&nbsp;davon Kaufnebenkosten</td><td class="v">'+fmtDE(C.nk)+' EUR</td></tr>'+
+    '<tr class="s"><td>&nbsp;&nbsp;davon für Kaufpreis</td><td class="v">'+fmtDE(C.ekKP)+' EUR</td></tr>'+
+    '<tr class="b"><td>Darlehen</td><td class="v">'+fmtDE(C.darl)+' EUR</td></tr>'+
+    '<tr><td>EK-Quote</td><td class="v">'+C.ekQ.toFixed(1)+' %</td></tr>'+
+    '<tr><td>Zinsanteil p.a. ('+C.zi.toFixed(1)+' %)</td><td class="v">'+fmtDE(C.zinsPA)+' EUR</td></tr>'+
+    '<tr class="s"><td>&nbsp;&nbsp;Tilgungsanteil p.a.</td><td class="v">'+fmtDE(C.tilgPA)+' EUR</td></tr>'+
+    '<tr class="b"><td>Annuität p.a.</td><td class="v">'+fmtDE(C.annPA)+' EUR</td></tr>'+
+    '<tr class="b"><td>Monatliche Rate</td><td class="v">'+fmtDE(C.annPM)+' EUR</td></tr></table>'+
+    '<table><tr><th>② Steuerliche Rechnung (nur Zins!)</th><th style="text-align:right">EUR p.a.</th></tr>'+
+    '<tr><td>Mieteinnahmen p.a.</td><td class="v">+'+fmtDE(C.jnkm)+' EUR</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;Zinsanteil (absetzbar)</td><td class="v">−'+fmtDE(C.zinsPA)+' EUR</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;Instandhaltung</td><td class="v">−'+fmtDE(C.instand)+' EUR</td></tr>'+
+    '<tr class="b"><td>Überschuss vor AfA</td><td class="v">'+fmtR(C.vVorAfA)+'</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;AfA ('+fmtDE(C.afaG)+' EUR × 2,0 %)</td><td class="v">−'+fmtDE(C.afaPA)+' EUR</td></tr>'+
+    '<tr class="b"><td>Steuerl. Ergebnis nach AfA</td><td class="v">'+fmtR(C.vNachAfA)+'</td></tr>'+
+    '<tr class="b"><td>'+stLbl+'</td><td class="v">'+fmtR(stVal)+'</td></tr></table>'+
+    '<table><tr><th>③ Cashflow</th><th style="text-align:right">EUR p.a.</th></tr>'+
+    '<tr><td>Mieteinnahmen</td><td class="v">+'+fmtDE(C.jnkm)+' EUR</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;Annuität (Zins+Tilgung)</td><td class="v">−'+fmtDE(C.annPA)+' EUR</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;Instandhaltung</td><td class="v">−'+fmtDE(C.instand)+' EUR</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;'+stLbl+'</td><td class="v">'+fmtR(stVal)+'</td></tr>'+
+    '<tr class="b"><td>Cashflow nach Steuern p.a.</td><td class="v">'+fmtR(C.cfPA)+'</td></tr>'+
+    '<tr class="b"><td>Cashflow pro Monat</td><td class="v">'+fmtR(C.cfPM)+'</td></tr>'+
+    '<tr class="b"><td>Tilgung p.a. (Vermögensaufbau)</td><td class="v">+'+fmtDE(C.tilgPA)+' EUR</td></tr></table>'+
+    '<table><tr><th>④ EK-Rendite</th><th style="text-align:right">EUR / %</th></tr>'+
+    '<tr><td>Cashflow nach Steuern p.a.</td><td class="v">'+fmtR(C.cfPA)+'</td></tr>'+
+    '<tr><td>&nbsp;&nbsp;+ Tilgung p.a.</td><td class="v">+'+fmtDE(C.tilgPA)+' EUR</td></tr>'+
+    '<tr class="b"><td>= Gesamtnutzen p.a.</td><td class="v">'+fmtR(C.cfPA+C.tilgPA)+'</td></tr>'+
+    '<tr><td>Eigenkapital</td><td class="v">'+fmtDE(C.ek)+' EUR</td></tr>'+
+    '<tr class="h"><td>EK-Rendite p.a.</td><td class="v">'+(C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' %</td></tr></table>'+
+    '<table><tr><th>⑤ Bewertungs-Ampel</th><th style="text-align:right">Wert</th><th style="text-align:center">Ampel</th></tr>'+
+    '<tr><td>Kaufpreis €/m²</td><td class="v">'+fmtDE(C.qmP)+' EUR</td><td style="text-align:center">'+dot(qmA)+'</td></tr>'+
+    '<tr><td>Bruttomietrendite</td><td class="v">'+C.brutto.toFixed(2)+' %</td><td style="text-align:center">'+dot(rA)+'</td></tr>'+
+    '<tr><td>Kaufpreis-Faktor</td><td class="v">'+C.faktor.toFixed(1)+'x</td><td style="text-align:center">'+dot(fA)+'</td></tr>'+
+    '<tr><td>Cashflow pro Monat</td><td class="v">'+fmtR(C.cfPM)+'</td><td style="text-align:center">'+dot(cA)+'</td></tr>'+
+    '<tr><td>EK-Rendite p.a.</td><td class="v">'+(C.ekRend>=0?'+':'')+C.ekRend.toFixed(2)+' %</td><td style="text-align:center">'+dot(eA)+'</td></tr></table>'+
+    '<div class="pd">Plausibilitätsprüfung, keine Anlageempfehlung. Vor Kauf: Steuerberater + ggf. Anwalt einbeziehen.</div>';
+  document.getElementById('expMenu').classList.remove('open');
+  setTimeout(function(){window.print();},100);
+}
+
+// Read URL parameters on load
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('kp'))  S.kaufpreis   = parseFloat(params.get('kp'));
+  if(params.get('ek'))  S.eigenkapital = parseFloat(params.get('ek'));
+  if(params.get('wf'))  S.wohnflaeche  = parseFloat(params.get('wf'));
+  if(params.get('mq'))  S.mieteQm      = parseFloat(params.get('mq'));
+  if(params.get('zi'))  S.zins         = parseFloat(params.get('zi'));
+  if(params.get('ti'))  S.tilgung      = parseFloat(params.get('ti'));
+  if(params.get('st'))  S.steuersatz   = parseFloat(params.get('st'));
+  if(params.get('afa')) S.afaSatz      = parseFloat(params.get('afa'));
+  if(params.get('ih'))  S.instandQm    = parseFloat(params.get('ih'));
+  if(params.get('mk'))  S.mitMakler    = params.get('mk') === '1';
+})();
+
+buildSliders();
+update();
+
+// Share button: copy current state as URL to clipboard
+document.getElementById('shareBtn').addEventListener('click', function(){
+  var base = window.location.origin + window.location.pathname;
+  var p = '?kp='+S.kaufpreis+'&ek='+S.eigenkapital+'&wf='+S.wohnflaeche+
+          '&mq='+S.mieteQm+'&zi='+S.zins+'&ti='+S.tilgung+
+          '&st='+S.steuersatz+'&afa='+S.afaSatz+'&ih='+S.instandQm+
+          '&mk='+(S.mitMakler?'1':'0');
+  var url = base + p;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){
+      showCopied();
+    });
+  } else {
+    // Fallback for older browsers
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopied();
+  }
+});
+
+function showCopied(){
+  var btn = document.getElementById('shareBtn');
+  var orig = btn.textContent;
+  btn.textContent = '✓ Link kopiert!';
+  btn.style.background = 'rgba(111,207,151,0.2)';
+  btn.style.borderColor = 'rgba(111,207,151,0.5)';
+  btn.style.color = '#6fcf97';
+  setTimeout(function(){
+    btn.textContent = orig;
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }, 2000);
+}
+
+// Attach all event listeners after DOM ready
+document.getElementById('tab-e').addEventListener('click', function(){ goTab('e',this); });
+document.getElementById('tab-r').addEventListener('click', function(){ goTab('r2',this); });
+document.getElementById('tab-b').addEventListener('click', function(){ goTab('b',this); });
+document.getElementById('expBtn').addEventListener('click', function(e){ e.stopPropagation(); toggleExp(); });
+document.getElementById('csvBtn').addEventListener('click', function(){ doCSV(); });
+document.getElementById('pdfBtn').addEventListener('click', function(){ doPDF(); });
+document.getElementById('makTog').addEventListener('click', function(){ togMakler(); });
+</script>
+</body>
+</html>
